@@ -7,10 +7,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use App\Vendor;
+use App\Rider;
+use App\Order;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     const ADMIN = 0;
     const VENDOR = 1;
@@ -22,7 +26,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -32,6 +36,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function getColumns()
+    {
+        return Schema::getColumnListing($this->table);
+    }
+
+    public function rider()
+    {
+        return $this->hasOne(Rider::class);
+    }
 
     public function vendor()
     {
@@ -76,5 +90,10 @@ class User extends Authenticatable
     public static function scopeOnlyCustomer($query)
     {
         return $query->where('user_role', self::CUSTOMER)->get();
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }
